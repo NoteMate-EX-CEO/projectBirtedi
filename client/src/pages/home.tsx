@@ -2127,390 +2127,160 @@ export const cinematicJourneyController = {
   toggle: () => {}
 };
 
-// Add this new component before the Home component
-const InteractiveLogoAnimation = ({ scrollProgress, scale }: { scrollProgress: number, scale: number }) => {
-  const [isVideoPlaying, setIsVideoPlaying] = React.useState(false);
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-  const smallLogoRef = React.useRef<HTMLDivElement>(null);
-  const squareRef = React.useRef<HTMLDivElement>(null);
-  const [squarePosition, setSquarePosition] = React.useState({ x: 0, y: 0 });
-  const [animationStage, setAnimationStage] = React.useState(0);
-  const [fallStartTime, setFallStartTime] = React.useState<number | null>(null);
-  const [canExpand, setCanExpand] = React.useState(false);
-  const [previousScrollProgress, setPreviousScrollProgress] = React.useState(0);
-  const [interpolatedScroll, setInterpolatedScroll] = React.useState(0);
+// Card Roulette - scrolling animation of random cards
+const CardRoulette = () => {
+  const [cards, setCards] = React.useState<Array<{
+    id: number;
+    color: string;
+    title: string;
+    icon: string;
+  }>>([]);
+  const rouletteRef = React.useRef<HTMLDivElement>(null);
+  const animationRef = React.useRef<number>(0);
+  const scrollSpeed = React.useRef(2);
+  const [isHovered, setIsHovered] = React.useState(false);
   
-  // Animation ranges - these determine when each effect happens
-  const ANIMATION_RANGES = {
-    initialToAbsorb: [0, 0.15] as [number, number],
-    absorbToRelease: [0.15, 0.25] as [number, number],
-    releaseToFloat: [0.25, 0.35] as [number, number],
-    floatToFall: [0.35, 0.45] as [number, number],
-    fallToExpand: [0.45, 0.55] as [number, number],
-    expandToFinal: [0.55, 0.65] as [number, number]
-  };
-  
-  // Normalize a value based on a range to get a progress percentage (0-1)
-  const normalizeProgress = (current: number, min: number, max: number): number => {
-    return Math.min(1, Math.max(0, (current - min) / (max - min)));
-  };
-  
-  // Easing functions for smoother animations
-  const easeInOutCubic = (x: number): number => {
-    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
-  };
-  
-  const easeOutQuint = (x: number): number => {
-    return 1 - Math.pow(1 - x, 5);
-  };
-  
-  const easeInQuint = (x: number): number => {
-    return x * x * x * x * x;
-  };
-  
-  // Smooth scroll interpolation for more precise animations
+  // Generate random cards on component mount
   React.useEffect(() => {
-    let animationFrameId: number;
+    // Create an array of random card data
+    const cardColors = [
+      'bg-gradient-to-br from-red-500 to-pink-600',
+      'bg-gradient-to-br from-blue-500 to-indigo-600',
+      'bg-gradient-to-br from-green-400 to-emerald-600',
+      'bg-gradient-to-br from-yellow-400 to-amber-600',
+      'bg-gradient-to-br from-purple-500 to-violet-600',
+      'bg-gradient-to-br from-cyan-400 to-blue-500',
+      'bg-gradient-to-br from-fuchsia-500 to-pink-600',
+      'bg-gradient-to-br from-orange-400 to-red-600',
+    ];
     
-    const smoothScrollInterpolation = () => {
-      // Calculate the interpolated scroll position
-      const scrollDelta = scrollProgress - interpolatedScroll;
-      const smoothFactor = 0.12; // Lower for smoother but slower interpolation
-      
-      if (Math.abs(scrollDelta) > 0.0001) {
-        setInterpolatedScroll(prev => prev + scrollDelta * smoothFactor);
-        animationFrameId = requestAnimationFrame(smoothScrollInterpolation);
-      } else {
-        setInterpolatedScroll(scrollProgress);
-      }
-    };
+    const cardTitles = [
+      'Creative Design',
+      'Web Development',
+      'UI/UX Design',
+      'Brand Strategy',
+      'Digital Marketing',
+      'Motion Graphics',
+      'Content Creation',
+      'Social Media',
+      'SEO Optimization',
+      'Video Production',
+      'App Development',
+      'Photography',
+    ];
     
-    animationFrameId = requestAnimationFrame(smoothScrollInterpolation);
+    const cardIcons = [
+      'M12 6v6m0 0v6m0-6h6m-6 0H6',
+      'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
+      'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
+      'M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01',
+      'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
+      'M13 10V3L4 14h7v7l9-11h-7z',
+      'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z',
+      'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9',
+    ];
+    
+    // Generate 30 cards (duplicates are fine for a continuous scroll effect)
+    const generatedCards = Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      color: cardColors[Math.floor(Math.random() * cardColors.length)],
+      title: cardTitles[Math.floor(Math.random() * cardTitles.length)],
+      icon: cardIcons[Math.floor(Math.random() * cardIcons.length)],
+    }));
+    
+    setCards(generatedCards);
+    
+    // Start the animation
+    animateRoulette();
     
     return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [scrollProgress]);
-  
-  // Track when fall animation begins
-  React.useEffect(() => {
-    if (interpolatedScroll >= ANIMATION_RANGES.floatToFall[0] && fallStartTime === null) {
-      setFallStartTime(Date.now());
-    }
-    
-    // Reset the fall timer if we scroll back up
-    if (interpolatedScroll < ANIMATION_RANGES.floatToFall[0] && fallStartTime !== null) {
-      setFallStartTime(null);
-      setCanExpand(false);
-    }
-  }, [interpolatedScroll, fallStartTime]);
-  
-  // Ensure the fall animation plays for at least 1 second
-  React.useEffect(() => {
-    if (fallStartTime !== null) {
-      const minFallDuration = 1000; // 1 second in milliseconds
-      
-      const checkFallDuration = () => {
-        const currentTime = Date.now();
-        const fallDuration = currentTime - fallStartTime;
-        
-        if (fallDuration >= minFallDuration) {
-          setCanExpand(true);
-        } else {
-          // Check again after the remaining time
-          const remainingTime = minFallDuration - fallDuration;
-          setTimeout(checkFallDuration, remainingTime);
-        }
-      };
-      
-      checkFallDuration();
-    }
-  }, [fallStartTime]);
-  
-  // Calculate animation stages based on scroll progress
-  React.useEffect(() => {
-    const calculateStages = () => {
-      // Get all progress values for different animation stages
-      const absorbProgress = normalizeProgress(interpolatedScroll, ANIMATION_RANGES.initialToAbsorb[0], ANIMATION_RANGES.initialToAbsorb[1]);
-      const releaseProgress = normalizeProgress(interpolatedScroll, ANIMATION_RANGES.absorbToRelease[0], ANIMATION_RANGES.absorbToRelease[1]);
-      const floatProgress = normalizeProgress(interpolatedScroll, ANIMATION_RANGES.releaseToFloat[0], ANIMATION_RANGES.releaseToFloat[1]);
-      const fallProgress = normalizeProgress(interpolatedScroll, ANIMATION_RANGES.floatToFall[0], ANIMATION_RANGES.floatToFall[1]);
-      
-      // Only calculate expansion progress if enough time has passed for the fall animation
-      const expandProgress = canExpand ? 
-        normalizeProgress(interpolatedScroll, ANIMATION_RANGES.fallToExpand[0], ANIMATION_RANGES.fallToExpand[1]) : 0;
-        
-      const finalProgress = canExpand ? 
-        normalizeProgress(interpolatedScroll, ANIMATION_RANGES.expandToFinal[0], ANIMATION_RANGES.expandToFinal[1]) : 0;
-      
-      // Set the current animation stage with delay for expansion
-      if (interpolatedScroll < ANIMATION_RANGES.initialToAbsorb[1]) setAnimationStage(0); // Initial
-      else if (interpolatedScroll < ANIMATION_RANGES.absorbToRelease[1]) setAnimationStage(1); // Absorb
-      else if (interpolatedScroll < ANIMATION_RANGES.releaseToFloat[1]) setAnimationStage(2); // Release
-      else if (interpolatedScroll < ANIMATION_RANGES.floatToFall[1]) setAnimationStage(3); // Float
-      else if (!canExpand || interpolatedScroll < ANIMATION_RANGES.fallToExpand[1]) setAnimationStage(4); // Fall
-      else if (interpolatedScroll < ANIMATION_RANGES.expandToFinal[1]) setAnimationStage(5); // Expand
-      else setAnimationStage(6); // Final
-      
-      // Store the previous scroll value to determine direction
-      setPreviousScrollProgress(interpolatedScroll);
-      
-      // Apply animations based on progress values
-      if (squareRef.current) {
-        // Always ensure proper visibility for the square during active stages
-        if (animationStage >= 2 && animationStage <= 5) {
-          squareRef.current.style.opacity = '1';
-        }
-
-        // Handle expansion - only if fall animation has played for minimum duration
-        if (animationStage >= 5 && canExpand) {
-          // Apply easeOutQuint for smoother expansion that starts fast and slows down
-          const expansionProgress = animationStage === 5 ? expandProgress : finalProgress;
-          const easedExpansionProgress = easeOutQuint(expansionProgress);
-          
-          // Calculate size from small square to full viewport
-          const width = 64 + (easedExpansionProgress * (window.innerWidth - 64));
-          const height = 64 + (easedExpansionProgress * (window.innerHeight - 64));
-          
-          // Calculate position to center
-          const left = (window.innerWidth - width) / 2;
-          // Start from the bottom where the fall ended
-          const startTop = window.innerHeight * 0.6; 
-          const endTop = (window.innerHeight - height) / 2;
-          // Interpolate position based on expansion progress with easing
-          const top = startTop + (easedExpansionProgress * (endTop - startTop));
-          
-          // Transition from red to black with easing
-          const red = Math.max(0, 255 * (1 - easedExpansionProgress));
-          const backgroundColor = `rgb(${red}, 0, 0)`;
-          
-          // Apply styles with hardware acceleration
-          squareRef.current.style.width = `${width}px`;
-          squareRef.current.style.height = `${height}px`;
-          squareRef.current.style.left = `${left}px`;
-          squareRef.current.style.top = `${top}px`;
-          squareRef.current.style.backgroundColor = backgroundColor;
-          squareRef.current.style.transform = 'translateZ(0)';
-          
-          // Transition to video with smoother curve
-          const videoContainer = squareRef.current.querySelector('div');
-          if (videoContainer) {
-            const videoOpacity = easedExpansionProgress > 0.7 ? 
-              easeInOutCubic(Math.min(1, (easedExpansionProgress - 0.7) * 3.33)) : 0;
-            videoContainer.style.opacity = videoOpacity.toString();
-          }
-          
-          // Show video at final stage with full expansion
-          if (videoRef.current) {
-            const videoOpacity = easedExpansionProgress > 0.7 ? 
-              easeInOutCubic(Math.min(1, (easedExpansionProgress - 0.7) * 3.33)) : 0;
-            videoRef.current.style.opacity = videoOpacity.toString();
-          }
-        }
-        
-        // Handle falling - transition from float to fall positions
-        if (animationStage === 4) {
-          // Create a realistic falling motion
-          const startY = 96; // top-24 (where floating happens)
-          const endY = window.innerHeight * 0.6; // 60vh
-          
-          // Calculate fall progress - if canExpand is false, cap at 95% to ensure visible falling
-          let displayFallProgress = fallProgress;
-          if (!canExpand && fallProgress > 0.95) {
-            displayFallProgress = 0.95;
-          }
-          
-          // Apply easing to make fall more natural
-          // Uses easeInQuint function for more realistic acceleration
-          const easedProgress = easeInQuint(displayFallProgress);
-          const currentY = startY + (easedProgress * (endY - startY));
-          
-          // Apply slight rotation during fall with smoother curves
-          const rotationAngle = 8 * Math.sin(displayFallProgress * Math.PI);
-          const rotationDirection = previousScrollProgress > interpolatedScroll ? -1 : 1; // Adjust rotation based on scroll direction
-          const rotation = rotationDirection * rotationAngle;
-          
-          // Apply hardware-accelerated transforms for smoother animation
-          squareRef.current.style.width = '64px';
-          squareRef.current.style.height = '64px';
-          squareRef.current.style.top = `${currentY}px`;
-          squareRef.current.style.transform = `rotate(${rotation}deg) translateZ(0)`;
-          squareRef.current.style.left = `${window.innerWidth * 0.4}px`;
-          squareRef.current.style.backgroundColor = 'rgb(220, 38, 38)'; // red-600
-          // Add subtle shadow that increases as it falls
-          squareRef.current.style.boxShadow = `0 ${easedProgress * 20}px 15px rgba(0, 0, 0, ${easedProgress * 0.3})`;
-        }
-        
-        // Set up square for release and float stages
-        if (animationStage === 2 || animationStage === 3) {
-          squareRef.current.style.width = '64px';
-          squareRef.current.style.height = '64px';
-          squareRef.current.style.left = `${window.innerWidth * 0.4}px`;
-          squareRef.current.style.top = '96px'; // top-24
-          squareRef.current.style.backgroundColor = 'rgb(220, 38, 38)'; // red-600
-          squareRef.current.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
-          
-          // Apply floating effect in float stage
-          if (animationStage === 3) {
-            const floatTime = Date.now() / 500;
-            // Combine multiple sine waves for more natural floating
-            const primaryWave = Math.sin(floatTime) * 8;
-            const secondaryWave = Math.sin(floatTime * 1.5) * 2;
-            const floatY = primaryWave + secondaryWave;
-            squareRef.current.style.transform = `translateY(${floatY}px) translateZ(0)`;
-          } else {
-            squareRef.current.style.transform = 'translateZ(0)';
-          }
-        }
-        
-        // Handle top rectangle logo
-        if (smallLogoRef.current) {
-          if (animationStage === 0) {
-            // Shrink in sync with main logo while visible
-            const relativeScale = Math.max(0.3, scale);
-            smallLogoRef.current.style.transform = `scale(${relativeScale}) translateZ(0)`;
-            smallLogoRef.current.style.opacity = '1';
-          } else if (animationStage === 1) {
-            // Absorb the logo gradually with easing
-            const easedAbsorbProgress = easeInOutCubic(absorbProgress);
-            const absorptionScale = Math.max(0.01, (1 - easedAbsorbProgress) * scale);
-            smallLogoRef.current.style.transform = `scale(${absorptionScale}) translateZ(0)`;
-            smallLogoRef.current.style.opacity = (1 - easedAbsorbProgress).toString();
-          } else {
-            // Hidden at later stages
-            smallLogoRef.current.style.opacity = '0';
-            smallLogoRef.current.style.transform = 'scale(0) translateZ(0)';
-          }
-        }
-        
-        // Hide square during initial and absorb stages
-        if (animationStage < 2) {
-          squareRef.current.style.width = '0';
-          squareRef.current.style.height = '0';
-          squareRef.current.style.opacity = '0';
-          squareRef.current.style.transform = 'translateZ(0)';
-        }
-      }
-    };
-    
-    // Run the calculations
-    calculateStages();
-    
-    // Set up animation loop for continuous effects like floating
-    const animationFrame = requestAnimationFrame(function animateEffects() {
-      // Only update animation frames for effects that need continuous animation
-      if (animationStage === 3 && squareRef.current) { // Float stage
-        const floatTime = Date.now() / 500;
-        // Combine multiple sine waves for more natural floating
-        const primaryWave = Math.sin(floatTime) * 8;
-        const secondaryWave = Math.sin(floatTime * 1.5) * 2;
-        const floatY = primaryWave + secondaryWave;
-        squareRef.current.style.transform = `translateY(${floatY}px) translateZ(0)`;
-      } else if (animationStage === 4 && squareRef.current) { // Fall stage
-        // Add subtle rotation during fall for more natural movement
-        const currentTransform = squareRef.current.style.transform;
-        if (currentTransform.includes('rotate')) {
-          const base = parseFloat(currentTransform.replace(/[^0-9.-]+/g, ''));
-          const rotationAmount = Math.sin(Date.now() / 200) * 1.5;
-          const newRotation = base + (rotationAmount * 0.1);
-          squareRef.current.style.transform = `rotate(${newRotation}deg) translateZ(0)`;
-        }
-      }
-      
-      requestAnimationFrame(animateEffects);
-    });
-    
-    return () => {
-      cancelAnimationFrame(animationFrame);
-    };
-  }, [interpolatedScroll, animationStage, scale, isVideoPlaying, canExpand, previousScrollProgress]);
-  
-  // Track the logo's T position for the absorption effect
-  React.useEffect(() => {
-    const logoImg = document.querySelector('img[alt="BIRTEDI"]') as HTMLImageElement;
-    const updatePosition = () => {
-      if (!logoImg || !smallLogoRef.current) return;
-      
-      const logoRect = logoImg.getBoundingClientRect();
-      // Move the rectangle icon more to the right
-      const position = logoRect.left + (logoRect.width * 0.4858);
-      
-      // Update small logo position
-      smallLogoRef.current.style.left = `${position}px`;
-    };
-    
-    // Initial positioning and update on resize
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    
-    return () => {
-      window.removeEventListener('resize', updatePosition);
+      cancelAnimationFrame(animationRef.current);
     };
   }, []);
   
-  // Handle video playback
+  // Animation function for continuous scrolling
+  const animateRoulette = () => {
+    if (!rouletteRef.current) return;
+    
+    const animate = () => {
+      if (!rouletteRef.current) return;
+      
+      // Get all card elements
+      const cardElements = rouletteRef.current.querySelectorAll('.card-item');
+      const containerWidth = rouletteRef.current.offsetWidth;
+      
+      cardElements.forEach((card) => {
+        const cardElement = card as HTMLElement;
+        // Move card to the left
+        cardElement.style.transform = `translateX(${parseFloat(cardElement.style.transform.replace('translateX(', '').replace('px)', '') || '0') - scrollSpeed.current}px)`;
+        
+        // If card is out of view on the left, move it to the far right
+        if (parseFloat(cardElement.style.transform.replace('translateX(', '').replace('px)', '')) < -cardElement.offsetWidth) {
+          cardElement.style.transform = `translateX(${containerWidth}px)`;
+        }
+      });
+      
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    animationRef.current = requestAnimationFrame(animate);
+  };
+  
+  // Speed up on hover, slow down when not hovering
   React.useEffect(() => {
-    if (animationStage === 6 && !isVideoPlaying && videoRef.current) {
-      // Ensure video is loaded before attempting to play
-      if (videoRef.current.readyState >= 2) {
-        videoRef.current.play()
-          .then(() => setIsVideoPlaying(true))
-          .catch(err => console.error("Video play error:", err));
-      } else {
-        // Wait for video to be ready
-        const handleCanPlay = () => {
-          videoRef.current?.play()
-            .then(() => setIsVideoPlaying(true))
-            .catch(err => console.error("Video play error:", err));
-          videoRef.current?.removeEventListener('canplay', handleCanPlay);
-        };
-        videoRef.current.addEventListener('canplay', handleCanPlay);
-      }
-    }
-  }, [animationStage, isVideoPlaying]);
+    scrollSpeed.current = isHovered ? 4 : 2;
+  }, [isHovered]);
   
   return (
-    <div className="fixed top-0 left-0 w-full h-full z-[60] pointer-events-none">
-      {/* Small rectangle logo that gets absorbed */}
-      <div 
-        ref={smallLogoRef}
-        className="absolute top-6 w-16 h-16 bg-red-600 rounded-sm"
-        style={{
-          transformOrigin: 'center center',
-          boxShadow: '0 0 15px rgba(255, 0, 0, 0.6)',
-          transition: 'opacity 0.2s ease-out, transform 0.2s ease-out, background-color 0.2s ease-out'
-        }}
-      />
-      
-      {/* Square that animates through different stages */}
-      <div
-        ref={squareRef}
-        className="absolute overflow-hidden"
-        style={{
-          width: '0',
-          height: '0',
-          opacity: '0',
-          boxShadow: '0 0 15px rgba(255, 0, 0, 0.7)',
-          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1), top 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease-in-out, opacity 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-          transformOrigin: 'center center',
-          willChange: 'transform, opacity, width, height, top, left, background-color'
-        }}
-      >
-        {/* Video container */}
-        <div className="w-full h-full relative" style={{ opacity: 0, transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            muted
-            loop
-            playsInline
-            preload="auto"
-            style={{ opacity: 0, transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}
-          >
-            <source src="/src/assets/videos/video.mp4" type="video/mp4" />
-          </video>
+    <div className="py-20 relative overflow-hidden bg-black">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">Our Expertise</h2>
+          <p className="text-gray-300 max-w-2xl mx-auto">
+            Scroll through our capabilities and discover the perfect match for your project needs.
+          </p>
         </div>
       </div>
+      
+      <div 
+        ref={rouletteRef} 
+        className="relative h-[400px] overflow-hidden"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {cards.map((card) => (
+          <motion.div
+            key={card.id}
+            className={`card-item absolute ${card.color} rounded-xl shadow-lg p-6 w-[280px] h-[180px] flex flex-col justify-between`}
+            style={{
+              transform: `translateX(${Math.random() * window.innerWidth}px)`,
+              top: `${Math.random() * 220}px`,
+            }}
+            whileHover={{ scale: 1.05, zIndex: 10 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          >
+            <div>
+              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={card.icon} />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white">{card.title}</h3>
+            </div>
+            <div className="flex justify-end">
+              <div className="w-6 h-6 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+      
+      {/* Gradient overlays to create fade effect on sides */}
+      <div className="absolute top-0 left-0 h-full w-64 bg-gradient-to-r from-black to-transparent z-10"></div>
+      <div className="absolute top-0 right-0 h-full w-64 bg-gradient-to-l from-black to-transparent z-10"></div>
     </div>
   );
 };
@@ -2520,8 +2290,6 @@ export default function Home() {
   const [scrollProgress, setScrollProgress] = React.useState(0);
   const requestRef = React.useRef<number>();
   const previousScrollY = React.useRef<number>(0);
-  const [hoveredService, setHoveredService] = React.useState<number | null>(null);
-  const [currentTab, setCurrentTab] = React.useState(0);
 
   // References for scroll-based animations
   const targetRef = React.useRef(null);
@@ -2530,17 +2298,9 @@ export default function Home() {
     offset: ["start end", "end start"]
   });
 
-  // Transform values for various elements
-  const aboutOpacity = useTransform(scrollYProgress, [0, 0.2, 0.3], [0, 0.8, 1]);
-  const aboutY = useTransform(scrollYProgress, [0, 0.3], [100, 0]);
-  const servicesOpacity = useTransform(scrollYProgress, [0.2, 0.4, 0.5], [0, 0.8, 1]);
-  const servicesY = useTransform(scrollYProgress, [0.2, 0.5], [100, 0]);
-  const operationOpacity = useTransform(scrollYProgress, [0.4, 0.7, 0.8], [0, 0.8, 1]);
-  const operationY = useTransform(scrollYProgress, [0.4, 0.8], [100, 0]);
-
   // Function to handle animation frame updates
   const animateScroll = React.useCallback(() => {
-      const scrollPosition = window.scrollY;
+    const scrollPosition = window.scrollY;
     
     // Only update if scroll position has changed significantly
     if (Math.abs(scrollPosition - previousScrollY.current) > 1) {
@@ -2579,82 +2339,6 @@ export default function Home() {
   const endPosition = -490;
   const yPosition = startPosition + (1 - scale) * (startPosition - endPosition);
 
-  // Services data
-  const services = [
-    {
-      title: "Branding",
-      description: "Telling stories and embracing identities with cinematic visuals",
-      icon: "01"
-    },
-    {
-      title: "Marketing",
-      description: "Creating strategic campaigns that leave an impact",
-      icon: "02"
-    },
-    {
-      title: "Web 3 & Digital",
-      description: "Innovating in digital spaces, from websites to applications",
-      icon: "03"
-    }
-  ];
-
-  // Operation features with more concise labels
-  const operationFeatures = [
-    {
-      title: "Discover",
-      description: "We identify core values and unique selling propositions that define your brand"
-    },
-    {
-      title: "Design",
-      description: "We craft visual elements and strategies that resonate with your target audience"
-    },
-    {
-      title: "Develop",
-      description: "We build robust platforms and campaigns that deliver results and drive engagement"
-    },
-    {
-      title: "Deploy",
-      description: "We launch and optimize your brand presence across relevant channels"
-    }
-  ];
-
-  // Projects showcase
-  const projects = [
-    {
-      title: "Luxury Brand Redesign",
-      category: "Branding & Strategy",
-      image: "../assets/projects/project1.jpg"
-    },
-    {
-      title: "Digital Campaign",
-      category: "Marketing & Growth",
-      image: "../assets/projects/project2.jpg"
-    },
-    {
-      title: "Web Platform",
-      category: "Development & Technology",
-      image: "../assets/projects/project3.jpg"
-    }
-  ];
-
-  // Mouse trail effect
-  const [mouseTrailPoints, setMouseTrailPoints] = React.useState<{x: number, y: number}[]>([]);
-  const mousePosition = useMousePosition();
-  
-  // Update mouse trail
-  React.useEffect(() => {
-    if (mousePosition.x === 0 && mousePosition.y === 0) return;
-    
-    setMouseTrailPoints(prev => {
-      const newPoints = [...prev, mousePosition];
-      // Keep only the 20 most recent points
-      if (newPoints.length > 20) {
-        return newPoints.slice(newPoints.length - 20);
-      }
-      return newPoints;
-    });
-  }, [mousePosition]);
-  
   // Background styles
   const backgroundStyle = {
     backgroundColor: "#f5f5f5",
@@ -2666,49 +2350,42 @@ export default function Home() {
     zIndex: 0
   } as React.CSSProperties;
 
-  // Connect CinematicJourneyMode toggle function for the main menu to use
-  const [showJourneyMode, setShowJourneyMode] = React.useState(false);
-  const toggleCinematicJourney = () => {
-    setShowJourneyMode(!showJourneyMode);
-  };
-  
-  // Update the controller that the MainMenu will use
-  React.useEffect(() => {
-    cinematicJourneyController.toggle = toggleCinematicJourney;
-  }, []);
+  // Card data for 3D scrolling section
+  const cards = [
+    {
+      title: "Brand Strategy",
+      description: "Developing cohesive brand identities that resonate with your audience.",
+      color: "from-red-500 to-pink-600"
+    },
+    {
+      title: "Visual Design",
+      description: "Creating stunning visuals that capture attention and communicate clearly.",
+      color: "from-blue-500 to-indigo-600"
+    },
+    {
+      title: "Digital Marketing",
+      description: "Crafting strategies that deliver your message to the right audiences.",
+      color: "from-green-500 to-emerald-600"
+    },
+    {
+      title: "Motion Graphics",
+      description: "Bringing ideas to life through captivating animation and movement.",
+      color: "from-purple-500 to-violet-600"
+    },
+    {
+      title: "Content Creation",
+      description: "Developing compelling content that tells your unique story.",
+      color: "from-amber-500 to-orange-600"
+    }
+  ];
 
   return (
-    <div className="relative min-h-screen bg-white">
-      {/* Add the InteractiveLogoAnimation component */}
-      <InteractiveLogoAnimation scrollProgress={scrollProgress} scale={scale} />
-      
+    <div className="min-h-screen font-galvij bg-white" ref={targetRef}>
       {/* Fixed background */}
       <div style={backgroundStyle}></div>
       
-      {/* Enhanced Audio-reactive WebGL grid with VR support */}
-      <EnhancedAudioReactiveGrid scrollProgress={scrollProgress} />
-      
-      {/* Interactive 3D Particles */}
-      <ParticlesCanvas scrollProgress={scrollProgress} />
-      
       {/* Custom Cursor */}
       <CustomCursor />
-
-      {/* Digital Portal - window to another dimension */}
-      <DigitalPortal />
-
-      {/* Cinematic Journey Mode - only render when activated via the menu */}
-      {showJourneyMode && <CinematicJourneyMode />}
-
-      {/* Main Menu - replaces all the individual buttons */}
-      <MainMenu />
-      
-      {/* Remove floating buttons and menu - they're now in MainMenu */}
-      {/* Float the VR and Ambient buttons in position but make them not visible (still clickable via menu) */}
-      <div className="opacity-0 pointer-events-none">
-        <AmbientSoundButton />
-        <VRModeButton />
-      </div>
 
       {/* Hero section with shrinking logo */}
       <div 
@@ -2771,323 +2448,889 @@ export default function Home() {
                 >
                   Our mission is to encourage the world to be more productive, creative, and passionate about their goals. Everything we produce mirrors our core values of innovation, discipline, and artistic excellence.
                 </motion.p>
-                
-                <motion.div 
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
-                  className="mt-16"
-                >
-                  <a href="#services" className="inline-flex items-center text-red-500 text-lg font-medium group">
-                    <span>Discover our services</span>
-                    <span className="ml-4 transform group-hover:translate-x-2 transition-transform">→</span>
-                  </a>
-                </motion.div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Divider */}
-        <div className="w-full h-px bg-gray-200"></div>
-
-        {/* Unique Value Proposition - Standout Section */}
-        <section className="py-32 relative bg-black text-white overflow-hidden">
-          {/* Background animated elements */}
-          <div className="absolute inset-0 overflow-hidden">
-            <motion.div 
-              animate={{ 
-                rotate: [0, 5, 0, -5, 0],
-                scale: [1, 1.05, 1, 0.95, 1]
-              }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute -top-[30%] -left-[20%] w-[70%] h-[70%] rounded-full bg-red-500/10 blur-[100px]"
-            />
-            <motion.div 
-              animate={{ 
-                rotate: [0, -5, 0, 5, 0],
-                scale: [1, 0.95, 1, 1.05, 1]
-              }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear", delay: 5 }}
-              className="absolute -bottom-[30%] -right-[20%] w-[70%] h-[70%] rounded-full bg-red-500/20 blur-[100px]"
-            />
-          </div>
-
-          {/* Glowing particle effect for interactivity */}
-          <GlowingParticlesEffect />
-
-          <div className="container mx-auto px-6 relative z-10">
-            <div className="max-w-7xl mx-auto">
-              {/* Reveal animation for the heading */}
-              <div className="overflow-hidden mb-24">
-                <motion.h2
-                  initial={{ y: 100, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.8 }}
-                  className="text-7xl md:text-9xl font-bold tracking-tighter"
-                >
-                  <span className="block">Where</span>
-                  <span className="block text-red-500 ml-20">artistry meets</span>
-                  <span className="block ml-40">strategy</span>
-                </motion.h2>
-              </div>
-
-              {/* Three unique selling points with staggered animation */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-10 mt-32">
-                {[
-                  {
-                    number: "01",
-                    title: "Cinematic Approach",
-                    description: "We craft narratives that captivate and resonate, turning viewers into loyal advocates."
-                  },
-                  {
-                    number: "02",
-                    title: "Strategic Innovation",
-                    description: "Every aesthetic choice is backed by research and aimed at driving measurable results."
-                  },
-                  {
-                    number: "03",
-                    title: "Cultural Impact",
-                    description: "We don't just follow trends—we help create movements that define cultural moments."
-                  }
-                ].map((point, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 * index }}
-                    className="relative"
-                  >
-                    <div className="absolute -top-12 opacity-20 text-8xl font-bold">
-                      {point.number}
-                    </div>
-                    <h3 className="text-2xl font-bold mb-6 mt-2 text-red-400">
-                      {point.title}
-                    </h3>
-                    <p className="text-lg text-gray-300">
-                      {point.description}
-                    </p>
-                    <div className="mt-8 h-1 w-16 bg-red-500" />
-                  </motion.div>
-                ))}
-        </div>
-
-              {/* Interactive 3D Tilt Card */}
-              <div className="mt-40">
-                <TiltImage 
-                  className="max-w-3xl h-[300px] mx-auto"
-                />
-      </div>
-
-              {/* Testimonial/Social Proof */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 1, delay: 0.5 }}
-                className="mt-40 md:mt-48 max-w-3xl mx-auto text-center"
-              >
-                <div className="flex justify-center mb-10">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-6 h-6 text-red-500 mx-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-2xl md:text-3xl font-light italic mb-8">
-                  "BIRTEDI transformed our brand from ordinary to <span className="text-red-400 font-medium">extraordinary</span>. Their vision and execution are unmatched in the industry."
-                </p>
-                <div className="flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-gray-700 mr-4"></div>
-                  <div className="text-left">
-                    <p className="font-medium">Alex Morgan</p>
-                    <p className="text-gray-400 text-sm">CEO, Luminous Ventures</p>
-            </div>
-                </div>
-              </motion.div>
-
-              {/* CTA Button */}
-              <div className="mt-24 text-center">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="border-2 border-white px-10 py-4 rounded-full text-lg font-medium hover:bg-white hover:text-black transition-all duration-300"
-                >
-                  Discover Our Philosophy
-                </motion.button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Divider */}
-        <div className="w-full h-px bg-gray-200"></div>
-
-        {/* Services in a clean grid layout */}
-        <section id="services" className="py-32 relative bg-white">
-          <div className="container mx-auto px-6">
+        {/* 3D Card Scrolling Animation Section */}
+        <section className="py-16 md:py-32 relative overflow-hidden bg-black">
+          <div className="container mx-auto px-6 mb-20">
             <motion.h2 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-5xl md:text-6xl font-light tracking-tighter text-white mb-6 text-center"
+            >
+              Our <span className="font-bold text-red-500">Expertise</span>
+            </motion.h2>
+            <motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.8 }}
-              className="text-5xl md:text-6xl font-light tracking-tight text-black mb-24"
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-xl text-gray-300 max-w-3xl mx-auto text-center"
             >
-              Our <span className="font-bold">Services</span>
-            </motion.h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-              {services.map((service, index) => (
-                <ServiceCard key={index} service={service} index={index} />
-          ))}
-        </div>
+              Scroll horizontally to explore our services
+            </motion.p>
           </div>
+          
+          <HorizontalScrollCards cards={cards} />
         </section>
 
-        {/* Divider */}
-        <div className="w-full h-px bg-gray-200"></div>
+        {/* Process Section - Added after card scrolling */}
+        <section className="py-24 relative bg-gradient-to-b from-black to-gray-900">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute w-full h-full bg-black opacity-30"></div>
+            <div 
+              className="absolute inset-0 opacity-10"
+              style={{ 
+                backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+                backgroundSize: '60px 60px'
+              }}
+            ></div>
+          </div>
 
-        {/* Method section with tabs */}
-        <section id="method" className="py-32 relative bg-white">
-          <div className="container mx-auto px-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-20">
+          <div className="container mx-auto px-6 relative z-10">
+            <div className="flex flex-col items-center text-center mb-16">
               <motion.h2 
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="text-5xl md:text-6xl font-light tracking-tight text-black mb-8 md:mb-0"
+                className="text-5xl md:text-6xl font-light tracking-tighter text-white mb-8"
               >
-                Our <span className="font-bold">Method</span>
+                Our <span className="font-bold text-blue-400">Process</span>
               </motion.h2>
               
               <motion.div 
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                className="flex space-x-8"
-              >
-                {operationFeatures.map((feature, index) => (
-                  <button
-                    key={index}
-                    className={`text-lg font-medium ${currentTab === index ? 'text-red-500' : 'text-gray-400'} hover:text-red-500 transition-colors`}
-                    onClick={() => setCurrentTab(index)}
-                  >
-                    {feature.title}
-                  </button>
-                ))}
-              </motion.div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
-              <motion.div
-                key={currentTab}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.6 }}
-                className="bg-gray-50 rounded-lg p-16 h-[400px] flex flex-col justify-center"
-              >
-                <div className="text-6xl font-light text-red-500 mb-8">
-                  {`0${currentTab + 1}`}
-                </div>
-                <h3 className="text-3xl font-bold mb-6 text-black">
-                  {operationFeatures[currentTab].title}
-                </h3>
-                <p className="text-xl text-gray-600">
-                  {operationFeatures[currentTab].description}
-                </p>
-              </motion.div>
-              
-              <div className="relative h-[400px] overflow-hidden bg-black rounded-lg">
-                <motion.div
-                  animate={{ 
-                    scale: [1, 1.05, 1],
-                    opacity: [0.7, 1, 0.7]
-                  }}
-                  transition={{ duration: 8, repeat: Infinity }}
-                  className="absolute inset-0 bg-center bg-cover"
-                  style={{ backgroundImage: `url(${backgroundImg})` }}
-                ></motion.div>
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                  <h4 className="text-4xl font-bold text-white max-w-xs text-center">
-                    {`Step ${currentTab + 1} of our proven process`}
-                  </h4>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Divider */}
-        <div className="w-full h-px bg-gray-200"></div>
-
-        {/* Call to Action with large typography */}
-        <section id="contact" className="py-32 relative bg-white">
-          <div className="container mx-auto px-6">
-            <div className="max-w-4xl mx-auto text-center">
-              <motion.h2 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="text-5xl md:text-7xl font-bold mb-12 text-black"
-              >
-                Ready to create something <span className="text-red-500">extraordinary</span>?
-              </motion.h2>
-              
-              <motion.p 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                className="w-24 h-1 bg-blue-400 mb-12"
+                initial={{ width: 0 }}
+                whileInView={{ width: 96 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="text-xl md:text-2xl mb-16 text-gray-600"
+              ></motion.div>
+              
+              <motion.p
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="text-xl text-gray-300 max-w-3xl"
               >
-                Let's bring your vision to life with our approach to branding and marketing.
+                We believe in a collaborative approach that combines strategy, creativity, and technology to deliver exceptional results for our clients.
               </motion.p>
-              
-              <MagneticButton
-                className="bg-black text-white px-10 py-5 rounded-full text-lg font-medium hover:bg-red-500 transition-all duration-300"
-              >
-                Let's Talk
-              </MagneticButton>
-            </div>
-          </div>
-        </section>
-
-        {/* Footer with minimal design */}
-        <footer className="py-16 relative bg-black text-white">
-          <div className="container mx-auto px-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
-              <div>
-                <h3 className="text-xl font-bold mb-6">BIRTEDI</h3>
-                <p className="text-gray-400">
-                  A creative agency for brands with vision. We create, design, and develop exceptional brand experiences.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-6">Contact</h3>
-                <p className="text-gray-400 mb-2">hello@birtedi.com</p>
-                <p className="text-gray-400">+1 234 567 8900</p>
-              </div>
-              
-              <div>
-                <h3 className="text-xl font-bold mb-6">Follow</h3>
-                <div className="flex space-x-6">
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">Instagram</a>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">LinkedIn</a>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">Behance</a>
-                </div>
-              </div>
             </div>
             
-            <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-              <p className="text-gray-400 mb-4 md:mb-0">© 2023 BIRTEDI. All rights reserved.</p>
-              <div className="flex space-x-8">
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy</a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Terms</a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Sitemap</a>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-20">
+              {[
+                {
+                  title: 'Discovery',
+                  description: 'We start by understanding your goals, audience, and challenges through thorough research and analysis.',
+                  icon: (
+                    <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  )
+                },
+                {
+                  title: 'Strategy',
+                  description: 'We develop a comprehensive strategy that aligns with your business objectives and resonates with your target audience.',
+                  icon: (
+                    <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  )
+                },
+                {
+                  title: 'Execution',
+                  description: 'We bring your vision to life through expert design, development, and implementation, with ongoing refinement.',
+                  icon: (
+                    <svg className="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                    </svg>
+                  )
+                }
+              ].map((step, index) => (
+                <motion.div 
+                  key={index}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+                  className="bg-gray-800 bg-opacity-70 backdrop-blur-sm rounded-xl p-8 flex flex-col items-center text-center hover:bg-gray-700 hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="w-16 h-16 rounded-full bg-blue-900 bg-opacity-40 flex items-center justify-center mb-6">
+                    {step.icon}
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">{step.title}</h3>
+                  <p className="text-gray-300">{step.description}</p>
+                </motion.div>
+              ))}
             </div>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-10 md:p-16 relative overflow-hidden"
+            >
+              <div className="absolute inset-0 opacity-10">
+                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <defs>
+                    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                      <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="1" />
+                    </pattern>
+                  </defs>
+                  <rect width="100" height="100" fill="url(#grid)" />
+                </svg>
+              </div>
+              
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between">
+                <div className="mb-8 md:mb-0 md:mr-8 text-center md:text-left">
+                  <h3 className="text-3xl md:text-4xl font-bold text-white mb-4">Ready to transform your digital presence?</h3>
+                  <p className="text-lg text-white text-opacity-90">Let's discuss how we can help you achieve your business goals.</p>
+                </div>
+                
+                <MagneticButton className="bg-white text-blue-600 hover:bg-blue-50 py-4 px-8 rounded-full font-bold text-lg shadow-lg">
+                  Contact Us
+                </MagneticButton>
+              </div>
+            </motion.div>
           </div>
-        </footer>
+        </section>
       </main>
     </div>
   );
 }
+
+// 3D Card Component for Scrolling Animation
+const Card = ({ card, index, offsetX }: { card: any, index: number, offsetX: number }) => {
+  const cardRef = React.useRef<HTMLDivElement>(null);
+  const [rotation, setRotation] = React.useState({ x: 0, y: 0 });
+  const mousePosition = useMousePosition();
+  
+  // 3D tilt effect based on mouse position
+  React.useEffect(() => {
+    if (!cardRef.current) return;
+    
+    const card = cardRef.current;
+    const rect = card.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    // Only calculate rotation if mouse is near the card
+    const proximity = 300; // Distance threshold in pixels
+    const dx = mousePosition.x - centerX;
+    const dy = mousePosition.y - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < proximity) {
+      // Calculate rotation proportional to mouse distance from center
+      const rotateY = (mousePosition.x - centerX) / 20;
+      const rotateX = (centerY - mousePosition.y) / 20;
+      
+      // Apply with a dampening factor for smoother effect
+      setRotation({
+        x: rotateX * 0.5,
+        y: rotateY * 0.5
+      });
+    } else {
+      // Gradually return to neutral position
+      setRotation({
+        x: rotation.x * 0.9,
+        y: rotation.y * 0.9
+      });
+    }
+  }, [mousePosition, rotation]);
+  
+  return (
+    <motion.div
+      ref={cardRef}
+      className={`relative w-[300px] md:w-[350px] h-[400px] md:h-[450px] flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br ${card.color} shadow-xl cursor-pointer mx-5`}
+      style={{
+        transformStyle: 'preserve-3d',
+        transform: `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
+        transition: 'transform 0.1s ease-out'
+      }}
+      whileHover={{ scale: 1.05, z: 20 }}
+      initial={{ opacity: 0, y: 100 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: index * 0.1 }}
+    >
+      {/* Card content with 3D effect */}
+      <div className="p-8 h-full flex flex-col" style={{ transform: 'translateZ(20px)' }}>
+        <div className="mb-6">
+          <div className="w-16 h-16 rounded-full bg-white bg-opacity-20 flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h3 className="text-3xl font-bold text-white mb-4">{card.title}</h3>
+          <p className="text-white text-opacity-80">{card.description}</p>
+        </div>
+        
+        <div className="mt-auto flex justify-end">
+          <div className="w-10 h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      {/* Glossy overlay effect */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-50 pointer-events-none" 
+           style={{ transform: 'translateZ(5px)' }} />
+      
+      {/* Bottom highlight */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white bg-opacity-30" 
+           style={{ transform: 'translateZ(15px)' }} />
+    </motion.div>
+  );
+};
+
+// Horizontal scrolling container with wheel-based scrolling
+const HorizontalScrollCards = ({ cards }: { cards: any[] }): JSX.Element => {
+  const [scrollX, setScrollX] = React.useState(0);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const sectionRef = React.useRef<HTMLDivElement>(null);
+  const isDragging = React.useRef(false);
+  const startX = React.useRef(0);
+  const scrollLeft = React.useRef(0);
+  const velocityX = React.useRef(0);
+  const lastScrollX = React.useRef(0);
+  const lastScrollTime = React.useRef(Date.now());
+  const momentumRef = React.useRef<number | null>(null);
+  const isAtStart = React.useRef(true);
+  const isAtEnd = React.useRef(false);
+  const [isSectionActive, setIsSectionActive] = React.useState(false);
+  const [showScrollBarrier, setShowScrollBarrier] = React.useState(false);
+  const [allowScroll, setAllowScroll] = React.useState(false);
+  
+  // Find current active card index
+  const getCurrentCardIndex = () => {
+    if (!containerRef.current) return 0;
+    const containerWidth = containerRef.current.clientWidth;
+    return Math.floor((scrollX + containerWidth / 2) / 350);
+  };
+  
+  // Calculate max scroll distance with precise card positioning
+  const getMaxScroll = () => {
+    if (!containerRef.current || !scrollContainerRef.current) return 0;
+    const containerWidth = containerRef.current.clientWidth;
+    
+    // Calculate the position that puts the last card exactly in the center
+    // We need the total cards width + left padding, minus the offset needed to center the last card
+    const cardWidth = 360; // Approximate width of card + margin
+    const leftPadding = window.innerWidth * 0.4; // 40vw converted to pixels
+    
+    // Position to center the last card
+    const lastCardCenteredPosition = leftPadding + (cards.length - 1) * cardWidth;
+    
+    // Calculate the offset needed to center the last card
+    const centeringOffset = (containerWidth - cardWidth) / 2;
+    
+    // Add an extra left shift to move the last card a bit more to the left
+    // Adjust this value to control how much more left the card should be
+    const extraLeftShift = 150; // pixels to shift left - increased from 100 to 250
+    
+    // The max scroll is the position that places the last card in the center, plus extra shift left
+    return Math.max(0, lastCardCenteredPosition - centeringOffset + extraLeftShift);
+  };
+
+  // Update isAtStart and isAtEnd based on current scroll position
+  React.useEffect(() => {
+    const threshold = 10; // Small threshold to account for floating point imprecision
+    isAtStart.current = scrollX <= threshold;
+    
+    // Check if we've reached the position where the last card is centered
+    const maxScroll = getMaxScroll();
+    isAtEnd.current = Math.abs(scrollX - maxScroll) <= threshold;
+    
+    // If we're at the end, make sure we're exactly at maxScroll
+    if (isAtEnd.current && Math.abs(scrollX - maxScroll) > 0) {
+      setScrollX(maxScroll);
+    }
+    
+    // Show scroll barrier when at the end
+    setShowScrollBarrier(isAtEnd.current);
+  }, [scrollX, cards.length]);
+
+  // Check if section is in view and should capture scroll events
+  const checkSectionVisibility = React.useCallback(() => {
+    if (!sectionRef.current) return false;
+    
+    const rect = sectionRef.current.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    
+    // Make the section more demanding of attention - section must be at least 100% in view
+    const visibilityThreshold = 1; 
+    
+    // Calculate how much of the section is visible in the viewport
+    const visibleHeight = Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0);
+    const percentVisible = visibleHeight / rect.height;
+    
+    // Check if the section is also within a reasonable view range
+    // Tightened threshold - section must be more centered in viewport
+    const sectionTop = rect.top;
+    const sectionCenter = rect.top + (rect.height / 2);
+    const viewportCenter = windowHeight / 2;
+    
+    // Consider the section "active" when:
+    // 1. It's at least 100% visible AND 
+    // 2. Either the top of section is visible and not too far below center,
+    //    OR the section's center is reasonably close to viewport center
+    const isActive = 
+      (percentVisible >= visibilityThreshold) && 
+      ((sectionTop >= 0 && sectionTop < windowHeight * 0.7) || 
+       (Math.abs(sectionCenter - viewportCenter) <= windowHeight * 0.4));
+    
+    // Set state if it changed
+    if (isActive !== isSectionActive) {
+      setIsSectionActive(isActive);
+      
+      // When section becomes active, lock page scroll
+      if (isActive && !allowScroll) {
+        document.body.style.overflow = 'hidden';
+      } else if (!isActive) {
+        document.body.style.overflow = '';
+      }
+      
+      // Optional visual indicator when section becomes active
+      if (isActive && sectionRef.current) {
+        const element = sectionRef.current;
+        element.style.transition = 'box-shadow 0.3s ease-in-out';
+        element.style.boxShadow = 'inset 0 0 0 2px rgba(255,255,255,0.2)';
+        setTimeout(() => {
+          if (element) element.style.boxShadow = 'none';
+        }, 300);
+      }
+    }
+    
+    return isActive;
+  }, [isSectionActive, allowScroll]);
+  
+  // Determine if the scroll wheel event should be intercepted
+  const shouldInterceptWheel = (e: WheelEvent | React.WheelEvent) => {
+    // If the section is not active in the viewport, don't intercept
+    if (!isSectionActive) return false;
+    
+    const delta = e.deltaY;
+    
+    // If scrolling down and user hasn't reached the last card yet, intercept all scrolling
+    if (delta > 0 && !isAtEnd.current) {
+      return true;
+    }
+    
+    // If scrolling down and user has reached the last card, let the page scroll
+    if (delta > 0 && isAtEnd.current) {
+      return false;
+    }
+    
+    // If scrolling up or horizontal scroll, intercept when section is active
+    if (delta < 0 || e.deltaX !== 0) {
+      // If scrolling up and not at start, intercept
+      if (delta < 0 && !isAtStart.current) return true;
+    }
+    
+    // If scrolling up and at start, don't intercept (let page scroll)
+    return false;
+  };
+
+  // Add a global wheel event listener to catch events even outside our container
+  React.useEffect(() => {
+    // Lock body scroll when component mounts if section is active and scroll is not allowed
+    if (isSectionActive && !allowScroll) {
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // Need to use a raw event listener to catch all wheel events on the page
+    const handleGlobalWheel = (e: WheelEvent) => {
+      // Always check if section is visible in viewport
+      checkSectionVisibility();
+      
+      // Force intercept all page scroll events when section is visible and user hasn't finished viewing cards
+      if (isSectionActive && !allowScroll) {
+        e.preventDefault();
+        
+        const delta = e.deltaY || e.deltaX;
+        
+        // If trying to scroll down but haven't reached the last card,
+        // intercept and redirect to horizontal scrolling
+        if (delta > 0 && !isAtEnd.current) {
+          // Calculate new scroll position with smooth scrolling effect
+          const newScrollX = Math.max(0, Math.min(getMaxScroll(), scrollX + delta));
+          
+          // Calculate velocity for momentum
+          const now = Date.now();
+          const dt = now - lastScrollTime.current;
+          velocityX.current = (newScrollX - lastScrollX.current) / Math.max(1, dt) * 1000;
+          lastScrollX.current = scrollX;
+          lastScrollTime.current = now;
+          
+          setScrollX(newScrollX);
+          
+          // Cancel any ongoing momentum scrolling
+          if (momentumRef.current !== null) {
+            cancelAnimationFrame(momentumRef.current);
+            momentumRef.current = null;
+          }
+        }
+        
+        // For scrolling up
+        if (delta < 0) {
+          // If not at the start of horizontal scrolling, prevent page scroll and handle horizontally
+          if (!isAtStart.current) {
+            // Calculate new scroll position
+            const newScrollX = Math.max(0, Math.min(getMaxScroll(), scrollX + delta));
+            
+            // Calculate velocity
+            const now = Date.now();
+            const dt = now - lastScrollTime.current;
+            velocityX.current = (newScrollX - lastScrollX.current) / Math.max(1, dt) * 1000;
+            lastScrollX.current = scrollX;
+            lastScrollTime.current = now;
+            
+            setScrollX(newScrollX);
+            
+            // Cancel any ongoing momentum scrolling
+            if (momentumRef.current !== null) {
+              cancelAnimationFrame(momentumRef.current);
+              momentumRef.current = null;
+            }
+          }
+        }
+        return false;
+      }
+    };
+    
+    // Add scroll and visibility listeners
+    window.addEventListener('wheel', handleGlobalWheel, { passive: false });
+    window.addEventListener('scroll', checkSectionVisibility);
+    window.addEventListener('resize', checkSectionVisibility);
+    
+    // To handle touch devices more aggressively
+    const preventTouchMove = (e: TouchEvent) => {
+      if (isSectionActive && !allowScroll) {
+        e.preventDefault();
+      }
+    };
+    
+    window.addEventListener('touchmove', preventTouchMove, { passive: false });
+    
+    // Initial check
+    checkSectionVisibility();
+    
+    return () => {
+      // Clean up all event listeners
+      window.removeEventListener('wheel', handleGlobalWheel);
+      window.removeEventListener('scroll', checkSectionVisibility);
+      window.removeEventListener('resize', checkSectionVisibility);
+      window.removeEventListener('touchmove', preventTouchMove);
+      
+      // Restore body scroll when component unmounts
+      document.body.style.overflow = '';
+    };
+  }, [isSectionActive, scrollX, checkSectionVisibility, allowScroll]);
+
+  // Handle wheel events for direct interactions with the component
+  const handleWheel = (e: React.WheelEvent) => {
+    const delta = e.deltaY || e.deltaX;
+    
+    // Always prevent default behavior when section is active and user hasn't viewed all cards
+    if (isSectionActive && delta > 0 && !isAtEnd.current) {
+      e.preventDefault();
+    } else if (isSectionActive && delta < 0 && !isAtStart.current) {
+      e.preventDefault();
+    } else if (isSectionActive && delta > 0 && isAtEnd.current) {
+      // Allow page to scroll naturally if user has seen all cards
+      return;
+    } else {
+      // Don't intercept - let page scroll naturally for other cases
+      return;
+    }
+    
+    if (!containerRef.current) return;
+    
+    // Calculate new scroll position with smooth scrolling effect
+    const newScrollX = Math.max(0, Math.min(getMaxScroll(), scrollX + delta));
+    
+    // Calculate velocity
+    const now = Date.now();
+    const dt = now - lastScrollTime.current;
+    velocityX.current = (newScrollX - lastScrollX.current) / Math.max(1, dt) * 1000;
+    lastScrollX.current = scrollX;
+    lastScrollTime.current = now;
+    
+    setScrollX(newScrollX);
+    
+    // Cancel any ongoing momentum scrolling
+    if (momentumRef.current !== null) {
+      cancelAnimationFrame(momentumRef.current);
+      momentumRef.current = null;
+    }
+  };
+
+  // Scroll to a specific card with perfect centering
+  const scrollToCard = (index: number) => {
+    if (!containerRef.current) return;
+    
+    const containerWidth = containerRef.current.clientWidth;
+    const cardWidth = 360; // Approximate width of card plus margin
+    
+    // Calculate position with left padding
+    const leftPadding = window.innerWidth * 0.4; // 40vw converted to pixels
+    const rawPosition = leftPadding + (index * cardWidth);
+    
+    // Center the card in the viewport
+    const centeringOffset = (containerWidth - cardWidth) / 2;
+    const targetPosition = rawPosition - centeringOffset;
+    
+    // Make sure we don't exceed bounds
+    const maxScroll = getMaxScroll();
+    const finalPosition = Math.max(0, Math.min(maxScroll, targetPosition));
+    
+    // Smooth scroll to that position
+    setScrollX(finalPosition);
+  };
+
+  // Add keyboard navigation
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle keys if section is active in viewport
+      if (!isSectionActive) return;
+      
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        // Find current centered card index and go to previous
+        const currentIndex = getCurrentCardIndex();
+        if (currentIndex > 0) {
+          scrollToCard(currentIndex - 1);
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        // Find current centered card index and go to next
+        const currentIndex = getCurrentCardIndex();
+        if (currentIndex < cards.length - 1) {
+          scrollToCard(currentIndex + 1);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [cards.length, scrollX, isSectionActive]);
+  
+  // Helper to check if element is visible in viewport
+  const isElementInViewport = (el: HTMLElement) => {
+    const rect = el.getBoundingClientRect();
+    return (
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+  };
+
+  // Mouse down handler for drag scrolling
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    startX.current = e.pageX - (containerRef.current?.offsetLeft || 0);
+    scrollLeft.current = scrollX;
+    
+    // Cancel any ongoing momentum scrolling
+    if (momentumRef.current !== null) {
+      cancelAnimationFrame(momentumRef.current);
+      momentumRef.current = null;
+    }
+  };
+
+  // Mouse move handler for drag scrolling
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    
+    // Calculate how far the mouse has moved
+    const x = e.pageX - (containerRef.current?.offsetLeft || 0);
+    const walk = (x - startX.current) * 2; // Adjust scrolling speed
+    
+    // Calculate new scroll position
+    const newScrollX = Math.max(0, Math.min(getMaxScroll(), scrollLeft.current - walk));
+    
+    // Calculate velocity for momentum
+    const now = Date.now();
+    const dt = now - lastScrollTime.current;
+    velocityX.current = (newScrollX - lastScrollX.current) / Math.max(1, dt) * 1000;
+    lastScrollX.current = scrollX;
+    lastScrollTime.current = now;
+    
+    setScrollX(newScrollX);
+  };
+
+  // Mouse up handler to stop dragging
+  const handleMouseUp = () => {
+    isDragging.current = false;
+    // Start momentum scrolling
+    startMomentumScroll();
+  };
+
+  // Mouse leave handler to stop dragging
+  const handleMouseLeave = () => {
+    if (isDragging.current) {
+      isDragging.current = false;
+      startMomentumScroll();
+    }
+  };
+
+  // Touch start handler for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      isDragging.current = true;
+      startX.current = e.touches[0].pageX - (containerRef.current?.offsetLeft || 0);
+      scrollLeft.current = scrollX;
+      
+      // Cancel any ongoing momentum scrolling
+      if (momentumRef.current !== null) {
+        cancelAnimationFrame(momentumRef.current);
+        momentumRef.current = null;
+      }
+    }
+  };
+
+  // Touch move handler for mobile
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current || e.touches.length !== 1) return;
+    
+    // Calculate how far the touch has moved
+    const x = e.touches[0].pageX - (containerRef.current?.offsetLeft || 0);
+    const walk = (x - startX.current) * 2; // Adjust scrolling speed
+    
+    // Calculate new scroll position
+    const newScrollX = Math.max(0, Math.min(getMaxScroll(), scrollLeft.current - walk));
+    
+    // Calculate velocity for momentum
+    const now = Date.now();
+    const dt = now - lastScrollTime.current;
+    velocityX.current = (newScrollX - lastScrollX.current) / Math.max(1, dt) * 1000;
+    lastScrollX.current = newScrollX;
+    lastScrollTime.current = now;
+    
+    setScrollX(newScrollX);
+    
+    // Prevent page scrolling
+    e.preventDefault();
+  };
+
+  // Touch end handler for mobile
+  const handleTouchEnd = () => {
+    isDragging.current = false;
+    startMomentumScroll();
+  };
+
+  // Momentum scrolling animation
+  const startMomentumScroll = () => {
+    const friction = 0.95; // Adjust for more or less momentum
+    const minVelocity = 0.5; // Minimum velocity to continue momentum
+    
+    const animateMomentum = () => {
+      velocityX.current *= friction;
+      
+      if (Math.abs(velocityX.current) < minVelocity) {
+        if (momentumRef.current !== null) {
+          cancelAnimationFrame(momentumRef.current);
+          momentumRef.current = null;
+        }
+        return;
+      }
+      
+      const delta = velocityX.current / 60; // Adjust for frame rate
+      const newScrollX = Math.max(0, Math.min(getMaxScroll(), scrollX + delta));
+      
+      // Check if we're at the bounds and stop momentum immediately
+      if (newScrollX === 0 || newScrollX >= getMaxScroll()) {
+        velocityX.current = 0;
+        
+        // Ensure we snap exactly to the max scroll if we're near the end
+        if (Math.abs(newScrollX - getMaxScroll()) < 5) {
+          setScrollX(getMaxScroll());
+          
+          // Important: Force the isAtEnd state to update immediately
+          isAtEnd.current = true;
+          
+          // Stop the momentum animation
+          if (momentumRef.current !== null) {
+            cancelAnimationFrame(momentumRef.current);
+            momentumRef.current = null;
+          }
+          return;
+        }
+      }
+      
+      setScrollX(newScrollX);
+      momentumRef.current = requestAnimationFrame(animateMomentum);
+    };
+    
+    // Only start momentum if there's significant velocity and we're not at the end
+    if (Math.abs(velocityX.current) > minVelocity) {
+      // If we're already very close to the end, don't allow momentum to continue
+      const maxScroll = getMaxScroll();
+      if (Math.abs(scrollX - maxScroll) < 10) {
+        // Just snap to the end immediately
+        setScrollX(maxScroll);
+        isAtEnd.current = true;
+        return;
+      }
+      
+      momentumRef.current = requestAnimationFrame(animateMomentum);
+    }
+  };
+
+  // Clean up any animations when component unmounts
+  React.useEffect(() => {
+    return () => {
+      if (momentumRef.current !== null) {
+        cancelAnimationFrame(momentumRef.current);
+        momentumRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update the max scroll distance when window is resized
+  React.useEffect(() => {
+    const handleResize = () => {
+      setScrollX(prevScrollX => Math.min(prevScrollX, getMaxScroll()));
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return (
+    <div 
+      ref={sectionRef}
+      className={`relative h-[500px] md:h-[600px] w-full overflow-hidden ${isSectionActive ? 'section-active' : ''}`}
+    >
+      <div
+        ref={containerRef}
+        className="relative h-full w-full overflow-hidden"
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          cursor: isDragging.current ? 'grabbing' : 'grab'
+        }}
+      >
+        <motion.div
+          ref={scrollContainerRef}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="absolute inset-0 flex items-center"
+          style={{ 
+            transform: `translateX(${-scrollX}px)`,
+            transition: isDragging.current ? 'none' : 'transform 0.05s ease-out'
+          }}
+        >
+          <div className="flex items-center">
+            {/* Left padding to ensure first card can be centered */}
+            <div className="w-[40vw] flex-shrink-0"></div>
+            
+            {cards.map((card, index) => (
+              <Card key={index} card={card} index={index} offsetX={scrollX} />
+            ))}
+            
+            {/* No extra padding needed on right since we explicitly calculate end position */}
+          </div>
+        </motion.div>
+        
+        {/* Gradient overlays for fading effect */}
+        <div className="absolute top-0 left-0 h-full w-32 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute top-0 right-0 h-full w-32 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none"></div>
+        
+        {/* Scroll indicator - showing active card position */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {cards.map((_, index) => {
+            const isActive = getCurrentCardIndex() === index;
+            return (
+              <motion.div 
+                key={index}
+                className={`h-2.5 rounded-full cursor-pointer ${isActive ? 'bg-white' : 'bg-white/30'}`}
+                initial={false}
+                animate={{ 
+                  width: isActive ? 20 : 8,
+                  opacity: isActive ? 1 : 0.5
+                }}
+                transition={{ duration: 0.3 }}
+                onClick={() => scrollToCard(index)}
+              />
+            );
+          })}
+        </div>
+        
+        {/* Scroll Barrier - appears when user reaches the last card */}
+        {showScrollBarrier && (
+          <motion.div 
+            className="absolute bottom-0 left-0 right-0 h-[200px] z-20 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            style={{
+              background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5) 60%, rgba(0,0,0,0.8))',
+            }}
+          >
+            <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 w-auto flex flex-col items-center">
+              <motion.div
+                className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4 pointer-events-auto cursor-pointer"
+                initial={{ y: 10 }}
+                animate={{ y: [0, 10, 0] }}
+                transition={{ 
+                  duration: 1.5,
+                  repeat: Infinity,
+                  repeatType: "loop"
+                }}
+                onClick={() => {
+                  // Allow vertical scrolling to continue when clicked
+                  setAllowScroll(true);
+                  document.body.style.overflow = '';
+                  window.scrollBy({
+                    top: 100,
+                    behavior: 'smooth'
+                  });
+                }}
+              >
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </motion.div>
+              <div 
+                className="px-6 py-3 bg-white/10 backdrop-blur-md rounded-full text-white font-semibold pointer-events-auto cursor-pointer hover:bg-white/20 transition-colors"
+                onClick={() => {
+                  // Allow vertical scrolling to continue when clicked
+                  setAllowScroll(true);
+                  document.body.style.overflow = '';
+                  window.scrollBy({
+                    top: 100,
+                    behavior: 'smooth'
+                  });
+                }}
+              >
+                Continue Scrolling
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </div>
+      
+      {/* Debugging indicator for section active state */}
+      {isSectionActive && (
+        <div className="absolute inset-0 pointer-events-none" style={{ 
+            boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.1)', 
+            boxSizing: 'border-box'
+          }} />
+      )}
+    </div>
+  );
+};
